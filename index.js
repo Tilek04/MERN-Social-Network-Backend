@@ -23,7 +23,7 @@ app.post("/auth/register", registerValidation, async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json(errors.array());
   }
-  console.log('Server Branch')
+  
   const password = req.body.password;
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
