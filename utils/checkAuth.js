@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export default (req, res, next) => {
+  // срезаем название Bearer чтобы выводился только токен
   const token = (req.headers.authorization || "").replace(/Bearer\s?/, "");
 
   if (token) {

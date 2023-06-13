@@ -15,7 +15,7 @@ const app = express();
 // Хранилище для сохранения картинок
 
 const storage = multer.diskStorage({
-  destination: (_, __ , cb) => {
+  destination: (_, __, cb) => {
     cb(null, "uploads");
   },
   filename: (_, file, cb) => {
@@ -35,6 +35,8 @@ mongoose
   });
 app.use(express.json());
 
+app.use("/uploads", express.static("uploads"));
+
 app.post("/auth/register", registerValidation, userController.register);
 
 app.post("/auth/login", loginValidation, userController.login);
@@ -43,10 +45,10 @@ app.get("/auth/me", checkAuth, userController.getMe);
 
 // Роут на загрузку картинки
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
-res.json({
-  url: `/uploads/${req.file.originalname}`
-})
-})
+  res.json({
+    url: `/uploads/${req.file.originalname}`,
+  });
+});
 
 // СRUD постов
 app.post("/posts", checkAuth, postCreateValidation, postController.create);
