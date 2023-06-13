@@ -1,5 +1,5 @@
 import express from "express";
-import jwt from "jsonwebtoken";
+import multer from "multer";
 import mongoose from "mongoose";
 import {
   registerValidation,
@@ -11,6 +11,20 @@ import * as userController from "./controllers/userController.js";
 import * as postController from "./controllers/PostController.js";
 
 const app = express();
+
+// Хранилище для сохранения картинок
+
+const storage = multer.diskStorage({
+  destination: (_, __ , cb) => {
+    cb(null, "uploads");
+  },
+  filename: (_, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
 mongoose
   .connect("mongodb+srv://admin:admin123@cluster0.kuhcpv7.mongodb.net/test")
   .then(() => {
@@ -27,12 +41,19 @@ app.post("/auth/login", loginValidation, userController.login);
 
 app.get("/auth/me", checkAuth, userController.getMe);
 
+// Роут на загрузку картинки
+app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
+res.json({
+  url: `/uploads/${req.file.originalname}`
+})
+})
+
 // СRUD постов
 app.post("/posts", checkAuth, postCreateValidation, postController.create);
 app.get("/posts", postController.getAll);
-app.get('/posts/:id', postController.getOne);
-app.delete('/posts/:id', checkAuth, postController.remove);
-app.patch('/posts/:id', checkAuth, postController.update)
+app.get("/posts/:id", postController.getOne);
+app.delete("/posts/:id", checkAuth, postController.remove);
+app.patch("/posts/:id", checkAuth, postController.update);
 
 app.listen(4444, (err) => {
   if (err) {
