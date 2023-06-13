@@ -6,16 +6,15 @@ import {
   loginValidation,
   postCreateValidation,
 } from "./validations.js";
-import checkAuth from "./utils/checkAuth.js";
-import * as userController from "./controllers/userController.js";
-import * as postController from "./controllers/PostController.js";
+import { checkAuth, handleValidationErrors } from "./utils/index.js";
+import { userController, postController } from "./controllers/index.js";
 
 const app = express();
 
 // Хранилище для сохранения картинок
 
 const storage = multer.diskStorage({
-  destination: (_, __ , cb) => {
+  destination: (_, __, cb) => {
     cb(null, "uploads");
   },
   filename: (_, file, cb) => {
@@ -35,25 +34,49 @@ mongoose
   });
 app.use(express.json());
 
-app.post("/auth/register", registerValidation, userController.register);
+app.use("/uploads", express.static("uploads"));
 
-app.post("/auth/login", loginValidation, userController.login);
+app.post(
+  "/auth/register",
+  registerValidation,
+  handleValidationErrors,
+  userController.register
+);
+
+app.post(
+  "/auth/login",
+  loginValidation,
+  handleValidationErrors,
+  userController.login
+);
 
 app.get("/auth/me", checkAuth, userController.getMe);
 
 // Роут на загрузку картинки
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
-res.json({
-  url: `/uploads/${req.file.originalname}`
-})
-})
+  res.json({
+    url: `/uploads/${req.file.originalname}`,
+  });
+});
 
 // СRUD постов
-app.post("/posts", checkAuth, postCreateValidation, postController.create);
+app.post(
+  "/posts",
+  checkAuth,
+  postCreateValidation,
+  handleValidationErrors,
+  postController.create
+);
 app.get("/posts", postController.getAll);
 app.get("/posts/:id", postController.getOne);
 app.delete("/posts/:id", checkAuth, postController.remove);
-app.patch("/posts/:id", checkAuth, postController.update);
+app.patch(
+  "/posts/:id",
+  checkAuth,
+  postCreateValidation,
+  handleValidationErrors,
+  postController.update
+);
 
 app.listen(4444, (err) => {
   if (err) {
