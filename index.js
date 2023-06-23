@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import mongoose from "mongoose";
+import cors from 'cors'
 import {
   registerValidation,
   loginValidation,
@@ -24,6 +25,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+
+
 mongoose
   .connect("mongodb+srv://admin:admin123@cluster0.kuhcpv7.mongodb.net/test")
   .then(() => {
@@ -33,7 +36,7 @@ mongoose
     console.log("DB error", err);
   });
 app.use(express.json());
-
+app.use(cors())
 app.use("/uploads", express.static("uploads"));
 
 app.post(
@@ -67,7 +70,9 @@ app.post(
   handleValidationErrors,
   postController.create
 );
+app.get("/tags", postController.getLastTags);
 app.get("/posts", postController.getAll);
+app.get("/posts/tags", postController.getLastTags);
 app.get("/posts/:id", postController.getOne);
 app.delete("/posts/:id", checkAuth, postController.remove);
 app.patch(
